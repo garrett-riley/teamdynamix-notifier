@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>TDX Notifier</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      width: 280px;
+      padding: 16px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+    h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h1 .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #f4503a;   /* solid red = not watching, matching the toolbar icon */
+      transition: background .3s;
+      flex-shrink: 0;
+    }
+    h1 .dot.active   { background: #5bde80; }
+    h1 .dot.degraded { background: #f4a63a; }   /* amber = monitoring degraded (acknowledged) */
+    h1 .dot.alarming {
+      background: #f4503a;
+      animation: pulse 0.6s infinite alternate;
+    }
+    @keyframes pulse {
+      from { opacity: 1; }
+      to   { opacity: 0.3; }
+    }
+    .field { margin-bottom: 12px; }
+    fieldset.field { border: none; padding: 0; margin: 0 0 12px; min-width: 0; }
+    label.field-label, legend.field-label {
+      display: block;
+      font-size: 11px;
+      color: #9a9aaa;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    input[type="number"] {
+      width: 100%;
+      background: #252540;
+      border: 1px solid #383860;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 13px;
+      padding: 7px 10px;
+      outline: none;
+    }
+    input[type="text"] {
+      width: 100%;
+      background: #252540;
+      border: 1px solid #383860;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 11px;
+      padding: 6px 10px;
+      outline: none;
+      margin-top: 6px;
+    }
+    input[type="text"]::placeholder { color: #6a6a8a; }
+    select.select {
+      width: 100%;
+      background: #252540;
+      border: 1px solid #383860;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 13px;
+      padding: 7px 10px;
+      outline: none;
+      cursor: pointer;
+    }
+    select.select:focus { border-color: #5b6cf7; }
+    .volume-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    input[type="range"] {
+      flex: 1;
+      accent-color: #5b6cf7;
+      cursor: pointer;
+    }
+    .btn-test {
+      background: #252540;
+      border: 1px solid #383860;
+      border-radius: 6px;
+      color: #c0c0d0;
+      font-size: 12px;
+      padding: 6px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color .15s, color .15s;
+    }
+    .btn-test:hover { border-color: #5b6cf7; color: #fff; }
+    .group-list {
+      max-height: 132px;
+      overflow-y: auto;
+      background: #252540;
+      border: 1px solid #383860;
+      border-radius: 6px;
+      padding: 6px 8px;
+    }
+    .group-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 3px 0;
+      font-size: 12px;
+      color: #c0c0d0;
+      cursor: pointer;
+    }
+    .group-row input { accent-color: #5b6cf7; cursor: pointer; }
+    .group-section.locked { opacity: 0.55; pointer-events: none; }
+    .group-hint {
+      font-size: 10px;
+      color: #6a6a8a;
+      margin-top: 4px;
+    }
+    input:focus { border-color: #5b6cf7; }
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: opacity .15s;
+    }
+    .btn:hover    { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-start    { background: #5b6cf7; color: #fff; }
+    .btn-stop     { background: #f4503a; color: #fff; }
+    .btn-silence {
+      background: #f4a63a;
+      color: #1a1a2e;
+      font-size: 15px;
+      letter-spacing: 0.03em;
+      animation: silencePulse 0.8s infinite alternate;
+    }
+    @keyframes silencePulse {
+      from { box-shadow: 0 0 0px #f4a63a88; }
+      to   { box-shadow: 0 0 14px #f4a63acc; }
+    }
+    .divider { border: none; border-top: 1px solid #252540; margin: 12px 0; }
+    .status {
+      text-align: center;
+      font-size: 11px;
+      margin-top: 10px;
+      color: #9a9aaa;
+    }
+    .status.active   { color: #5bde80; }
+    .status.warn     { color: #f4a63a; }
+    .status.alarming { color: #f4503a; font-weight: 600; }
+    .version-tag {
+      text-align: center;
+      font-size: 9px;
+      color: #4a4a6a;
+      margin-top: 10px;
+      user-select: none;
+    }
+    .status-detail {
+      text-align: center;
+      font-size: 10px;
+      color: #6a6a8a;
+      margin-top: 4px;
+      min-height: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="margin-bottom: 14px;"><span class="dot" id="dot"></span> TDX Notifier</h1>
+
+  <div class="field">
+    <label class="field-label" for="interval">Refresh interval (minutes)</label>
+    <input type="number" id="interval" value="1" min="1" max="60" step="1" />
+  </div>
+
+  <fieldset class="field group-section" id="groupSection">
+    <legend class="field-label">Groups to watch</legend>
+    <div class="group-list" id="groupList"></div>
+    <p class="group-hint" id="groupHint">Changes apply when you start watching.</p>
+  </fieldset>
+
+  <hr class="divider">
+
+  <div class="field" style="margin-top: 12px;">
+    <label class="field-label" for="alarmSound">Alarm sound</label>
+    <select id="alarmSound" class="select">
+      <option value="chord">Rising chord</option>
+      <option value="beep">Single beep</option>
+      <option value="klaxon">Klaxon</option>
+      <option value="chime">Descending chime</option>
+      <option value="buzzer">Low buzzer</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label class="field-label" for="volume">Volume</label>
+    <div class="volume-row">
+      <input type="range" id="volume" min="0" max="100" value="60" aria-label="Alarm volume" />
+      <button class="btn-test" id="testBtn" type="button" title="Play current alarm sound"
+              aria-label="Play current alarm sound">🔊 Test</button>
+    </div>
+  </div>
+
+  <!-- Silence button — hidden until alarm fires -->
+  <button class="btn btn-silence" id="silenceBtn" style="display:none;">🔔 Silence Alarm</button>
+
+  <button class="btn btn-start" id="mainBtn">Watch This Tab</button>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <p class="status-detail" id="statusDetail" aria-live="polite"></p>
+  <p class="version-tag" id="versionTag"></p>
+
+  <script src="groups.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

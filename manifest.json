@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "TeamDynamix Notifier",
+  "version": "1.2.8",
+  "description": "Watches a TeamDynamix (TDX) ticket queue and sounds a continuous alarm when tickets are added or changed.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "alarms",
+    "storage",
+    "scripting",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "https://your-tdx-host.example.edu/*"
+  ],
+  "incognito": "not_allowed",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
